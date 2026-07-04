@@ -14,3 +14,11 @@ wheels/
 
 # Virtual environments
 .venv/
+
+# Jupyter lab
+*.ipynb
+.ipynb_checkpoints/
+
+# notebooks/
+notebooks/**/.ipynb_checkpoints/
+notebooks/**/*.ipynb
