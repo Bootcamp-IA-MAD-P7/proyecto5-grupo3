@@ -15,7 +15,7 @@
 # ---
 
 # %% [markdown]
-# # Used Car Price Regression — Starter EDA
+# ## Classification project — Starter EDA
 
 # %% 1. Imports
 import pandas as pd
