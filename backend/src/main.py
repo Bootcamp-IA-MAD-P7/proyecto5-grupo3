@@ -1,6 +1,25 @@
-def main():
-    print("Hello from backend!")
+# src/main.py
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
+app = FastAPI(title="Backend Proyecto 5 Grupo 3")
 
-if __name__ == "__main__":
-    main()
+# Configuración de CORS
+origins = [
+    "http://localhost:5173",  # Puerto Vite + React
+    "http://localhost:3000",  # Puerto Create React App
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,          # Permite las URLs de la lista
+    allow_credentials=True,
+    allow_methods=["*"],            # Permite todos los métodos (GET, POST, PUT, DELETE)
+    allow_headers=["*"],            # Permite todas las cabeceras
+)
+
+@app.get("/")
+def read_root():
+    return {"status": "ACEPTADO", "message": "Bienvenido al backend "}
