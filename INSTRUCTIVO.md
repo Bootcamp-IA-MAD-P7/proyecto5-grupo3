@@ -73,3 +73,34 @@ uv run jupytext --to notebook notebooks/01_preprocessing.py
 O simplemente abrir `01_preprocessing.py` desde Jupyter Lab / VS Code con la extensión de Jupytext y se sincronizará solo.
 
 > **Nota sobre el dataset:** La primera vez que se ejecute el notebook, `kagglehub` descargará automáticamente el dataset **Telco Customer Churn** de Kaggle y lo almacenará en caché local. En ejecuciones posteriores, `kagglehub.dataset_download(...)` reutilizará la copia cacheadas y solo cargará la ruta en la variable `path`.
+
+Ejecutar `01_preprocessing.py` genera además `backend/data/raw/telco_customer_churn.csv` (snapshot inmutable del dataset original) y `backend/data/processed/telco_customer_churn_clean.csv` (dataset limpio, listo para el EDA y para cargarse en la base de datos).
+
+## 6. Base de datos (Postgres vía Docker)
+
+> 💡IMPORTANTE: Requiere **Docker Desktop** corriendo. Los comandos se ejecutan desde la raíz del repo (`proyecto5-grupo3/`), salvo que se indique lo contrario.
+
+El proyecto usa Postgres para dos cosas: (1) almacenar el dataset de entrenamiento (tabla `customers`) y (2) dejar constancia de cada predicción que sirva la app en producción (tabla `app_predictions`), de cara a monitorización y a futuros reentrenamientos.
+
+```bash
+# Levanta Postgres (usa las credenciales de .env, ya versionado con valores de desarrollo)
+docker compose up -d
+
+# Comprobar que está sano
+docker compose ps
+```
+
+Con Postgres arriba, cargar el dataset procesado (requiere haber ejecutado antes `01_preprocessing.py`):
+
+```bash
+cd backend
+uv run python -m src.db.load_raw
+```
+
+El script crea las tablas si no existen (`customers`, `app_predictions`) y es idempotente: se puede volver a ejecutar sin duplicar filas (se salta los `customer_id` ya cargados).
+
+Para apagar la base de datos manteniendo los datos (el volumen persiste):
+
+```bash
+docker compose down
+```
