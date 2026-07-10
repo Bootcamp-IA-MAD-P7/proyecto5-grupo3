@@ -2,7 +2,7 @@
 
 ## 1. Requisitos globales
 
-Antes de clonar el repositorio, instalá las siguientes herramientas de manera global:
+Antes de clonar el repositorio, debes instalar las siguientes herramientas de manera global:
 
 - **Node.js** (v20 o superior): [https://nodejs.org](https://nodejs.org/es/download)
 

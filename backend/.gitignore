@@ -22,3 +22,9 @@ wheels/
 # notebooks/
 notebooks/**/.ipynb_checkpoints/
 notebooks/**/*.ipynb
+
+# data types
+*.csv
+*.parquet
+
+.env
