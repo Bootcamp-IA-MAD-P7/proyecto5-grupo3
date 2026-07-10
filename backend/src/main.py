@@ -1,6 +1,9 @@
-# src/main.py
+# Instancia FastAPI, incluye los routers y levanta el servidor
+
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from src.controllers import admin
 
 app = FastAPI(title="Backend Proyecto 5 Grupo 3")
 
@@ -20,6 +23,8 @@ app.add_middleware(
     allow_headers=["*"],            # Permite todas las cabeceras
 )
 
-@app.get("/")
+app.include_router(admin.router)
+
+""" @app.get("/")
 def read_root():
-    return {"status": "ACEPTADO", "message": "Bienvenido al backend "}
+    return {"status": "ACEPTADO", "message": "Bienvenido al backend "} """
