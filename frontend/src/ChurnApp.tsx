@@ -1,7 +1,7 @@
 import { RouterProvider } from 'react-router';
 import { appRouter } from './router/app.router';
 
-function GuardApp() {
+function ChurnApp() {
   return (
     <>
       <RouterProvider router={appRouter} />
@@ -9,4 +9,4 @@ function GuardApp() {
   );
 }
 
-export default GuardApp;
+export default ChurnApp;

@@ -2,17 +2,17 @@ import { createBrowserRouter, Navigate } from 'react-router';
 
 import { AdminLayout } from '@/admin/layouts/AdminLayout';
 import { AdminPage } from '@/admin/pages/AdminPage';
-import { GuardLayout } from '@/guard/layouts/GuardLayout';
-import { HomePage } from '@/guard/pages/home/HomePage';
-import { SearchPage } from '@/guard/pages/search/SearchPage';
-import { UserPage } from '@/guard/pages/user/UserPage';
+import { ChurnLayout } from '@/churn/layouts/ChurnLayout';
+import { HomePage } from '@/churn/pages/home/HomePage';
+import { SearchPage } from '@/churn/pages/search/SearchPage';
+import { UserPage } from '@/churn/pages/user/UserPage';
 
 // export const appRouter = createBrowserRouter([
 // export const appRouter = createHashRouter([
 export const appRouter = createBrowserRouter([
   {
     path: '/',
-    element: <GuardLayout />,
+    element: <ChurnLayout />,
     children: [
       {
         index: true,
