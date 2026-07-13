@@ -28,3 +28,8 @@ notebooks/**/*.ipynb
 *.parquet
 
 .env
+
+# Modelo Random Forest entrenado localmente (binario regenerable, ver
+# ml/train_random_forest.py). Las métricas sí se versionan
+# (ml/metrics_random_forest.json) como documentación del resultado.
+ml/model_random_forest.pkl
