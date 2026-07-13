@@ -1,10 +1,10 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./App.css";
-import GuardApp from "./GuardApp.tsx";
+import ChurnApp from "./ChurnApp.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <GuardApp />
+    <ChurnApp />
   </StrictMode>,
 );

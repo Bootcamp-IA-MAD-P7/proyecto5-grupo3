@@ -1,4 +1,23 @@
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { useState } from "react";
+
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+
 export const AdminPage = () => {
+  const [tenure, setTenure] = useState("");
+  const [monthlyCharges, setMonthlyCharges] = useState("");
+  const [contractType, setContractType] = useState("");
+
   return (
     <div className="p-6 space-y-6">
       {/* Título */}
@@ -6,49 +25,79 @@ export const AdminPage = () => {
       <p className="text-gray-600">Panel de métricas y predicciones</p>
 
       {/* Métricas */}
-      <div className="bg-white p-4 rounded shadow">
-        <h2 className="text-xl font-semibold mb-2">Métricas del modelo</h2>
-        <p>Accuracy: —</p>
-        <p>Precision: —</p>
-        <p>Recall: —</p>
-        <p>F1-score: —</p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Métricas del modelo</CardTitle>
+        </CardHeader>
+
+        <CardContent>
+          <p>Accuracy: —</p>
+          <p>Precision: —</p>
+          <p>Recall: —</p>
+          <p>F1-score: —</p>
+        </CardContent>
+      </Card>
+
+      <Separator />
 
       {/* Gráficas */}
-      <div className="bg-white p-4 rounded shadow">
-        <h2 className="text-xl font-semibold mb-2">Gráficas</h2>
-        <p>Aquí irán las visualizaciones del churn.</p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Gráficas</CardTitle>
+        </CardHeader>
+
+        <CardContent>
+          <p>Aquí irán las visualizaciones del churn.</p>
+        </CardContent>
+      </Card>
+
+      <Separator />
 
       {/* Formulario */}
-      <div className="bg-white p-4 rounded shadow">
-        <h2 className="text-xl font-semibold mb-4">Predicción</h2>
+      <Card>
+        <CardHeader>
+          <CardTitle>Predicción</CardTitle>
+        </CardHeader>
 
-        <form className="space-y-4">
-          <div>
-            <label className="block mb-1">Tenure</label>
-            <input type="number" className="border p-2 w-full rounded" />
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>Tenure</Label>
+            <Input
+              type="number"
+              value={tenure}
+              onChange={(e) => setTenure(e.target.value)}
+            />
           </div>
 
-          <div>
-            <label className="block mb-1">Monthly Charges</label>
-            <input type="number" className="border p-2 w-full rounded" />
+          <div className="space-y-2">
+            <Label>Monthly Charges</Label>
+            <Input
+              type="number"
+              value={monthlyCharges}
+              onChange={(e) => setMonthlyCharges(e.target.value)}
+            />
           </div>
 
-          <div>
-            <label className="block mb-1">Contract Type</label>
-            <select className="border p-2 w-full rounded">
-              <option>Month-to-month</option>
-              <option>One year</option>
-              <option>Two year</option>
-            </select>
+          <div className="space-y-2">
+            <Label>Contract Type</Label>
+            <Select
+              value={contractType}
+              onValueChange={(value) => setContractType(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona un contrato" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="month-to-month">Month-to-month</SelectItem>
+                <SelectItem value="one-year">One year</SelectItem>
+                <SelectItem value="two-year">Two year</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <button className="w-full bg-blue-600 text-white px-4 py-2 rounded">
-            Enviar
-          </button>
-        </form>
-      </div>
+          <Button className="w-full">Enviar</Button>
+        </CardContent>
+      </Card>
     </div>
   );
 };
