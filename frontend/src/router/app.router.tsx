@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router';
+import { createHashRouter, Navigate } from 'react-router';
 
 import { AdminLayout } from '@/admin/layouts/AdminLayout';
 import { AdminPage } from '@/admin/pages/AdminPage';
@@ -9,7 +9,7 @@ import { UserPage } from '@/churn/pages/user/UserPage';
 
 // export const appRouter = createBrowserRouter([
 // export const appRouter = createHashRouter([
-export const appRouter = createBrowserRouter([
+export const appRouter = createHashRouter([
   {
     path: '/',
     element: <ChurnLayout />,
