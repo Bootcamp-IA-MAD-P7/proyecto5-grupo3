@@ -1,62 +1,53 @@
-# Instancia FastAPI, incluye los routers y levanta el servidor
-
-from fastapi import FastAPI, Depends, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from src.controllers import prediction
+from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from contextlib import asynccontextmanager
+from typing import List
 
-from src.database.connection import get_db, engine, Base
+# Importamos las dependencias de base de datos que configuramos antes
+from src.database.connection import get_db
 from src.models.prediction import CustomerPrediction
+
+# Importamos esquemas de validación de Pydantic
 from src.schemas.prediction import PredictionCreate, PredictionResponse
 
-# Conexión directa con el pipeline de inferencia
+# 🟢 MODIFICADO: Importación corregida al archivo y función en inglés
 from ml.predict import predict_customer_churn
 
-app = FastAPI(title="Backend Proyecto 5 Grupo 3")
-
-# Configuración de CORS
-origins = [
-    "http://localhost:5173",  # Puerto Vite + React
-    "http://localhost:3000",  # Puerto Create React App
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:3000",
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,          # Permite las URLs de la lista
-    allow_credentials=True,
-    allow_methods=["*"],            # Permite todos los métodos (GET, POST, PUT, DELETE)
-    allow_headers=["*"],            # Permite todas las cabeceras
+# 1. Crear la instancia del router adaptada a tu proyecto
+router = APIRouter(
+    prefix="/api/predictions",
+    tags=["Predictions"]
 )
 
-#app.include_router(admin.router)
+# =====================================================================
+# Endpoint para obtener el historial
+# =====================================================================
+@router.get("/", response_model=List[PredictionResponse])
+def get_predictions(db: Session = Depends(get_db)):
+    """
+    Retorna el historial completo de predicciones almacenadas en PostgreSQL
+    para mostrarlo en las tablas o dashboards en el Front-End en React.
+    """
+    predictions = db.query(CustomerPrediction).all()
+    return predictions
+
 
 # =====================================================================
-# Creación automática de tu tabla independiente al arrancar
-
-Base.metadata.create_all(bind=engine)
-
-
+#  Endpoint de Inferencia y Persistencia (Vue usará POST)
 # =====================================================================
-#  NUEVO: Endpoint de Inferencia y Persistencia
-# =====================================================================
-@app.post("/predict", response_model=PredictionResponse, status_code=201)
+@router.post("/predict", response_model=PredictionResponse, status_code=201)
 def create_prediction(payload: PredictionCreate, db: Session = Depends(get_db)):
     """
-    Endpoint de inferencia. Recibe los datos validados de Vue, ejecuta la IA,
-    guarda en PostgreSQL y retorna los resultados financieros al Front-End.
+    Recibe los datos validados del cliente desde React, ejecuta los entrenamientos  
+    persiste los resultados financieros en PostgreSQL y retorna el registro.
     """
     try:
-        # Pydantic v2 extrae los datos limpios en un diccionario estándar
+        # 🟢 MODIFICADO: Variables locales cambiadas a inglés
         customer_data = payload.model_dump()
         
-        # Invoca la función predictora de tu carpeta externa ml/
+        # Invoca modelo de Inteligencia Artificial
         prediction_result = predict_customer_churn(customer_data)
         
-        # Mapea de forma explícita cada columna a tu modelo SQLAlchemy
-       
+        # Mapea explícitamente los campos hacia tu modelo SQLAlchemy
         new_prediction = CustomerPrediction(
             gender=customer_data["gender"],
             senior_citizen=customer_data["senior_citizen"],
@@ -77,9 +68,9 @@ def create_prediction(payload: PredictionCreate, db: Session = Depends(get_db)):
             tenure_months=customer_data["tenure_months"],
             monthly_charges=customer_data["monthly_charges"],
             total_charges=customer_data["total_charges"],
-            churn_value=customer_data.get("churn_value"), # .get() evita fallos si no se envía
+            churn_value=customer_data.get("churn_value"),
             
-            # Datos calculados e inyectados por la IA
+            # Outputs calculados e inyectados por tu IA
             churn_probability=prediction_result["churn_probability"],
             prediction_label=prediction_result["prediction_label"],
             model_confidence=prediction_result["model_confidence"],
@@ -88,10 +79,10 @@ def create_prediction(payload: PredictionCreate, db: Session = Depends(get_db)):
             clv_exposed=prediction_result.get("clv_exposed")
         )
         
-        # Escritura atómica en tu base de datos
+        # Escritura atómica en PostgreSQL
         db.add(new_prediction)
         db.commit()
-        db.refresh(new_prediction) # Captura el id y la fecha autogenerada
+        db.refresh(new_prediction) # Captura el id y el created_at autogenerados
         
         return new_prediction
 
@@ -101,12 +92,8 @@ def create_prediction(payload: PredictionCreate, db: Session = Depends(get_db)):
             detail=f"Error en la estructura interna de la IA. Falta el campo clave: {str(ke)}"
         )
     except Exception as e:
-        db.rollback() # Revierte la sesión de base de datos ante caídas o errores de escritura
+        db.rollback() # Revierte la transacción ante cualquier caída de escritura
         raise HTTPException(
             status_code=500, 
             detail=f"Fallo crítico en el pipeline del servidor de inferencia: {str(e)}"
         )
-
-#@app.get("/")
-#def read_root():
- #   return {"status": "ACEPTADO", "message": "Bienvenido al backend independiente"}

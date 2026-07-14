@@ -14,3 +14,30 @@ wheels/
 
 # Virtual environments
 .venv/
+
+# Jupyter lab
+*.ipynb
+.ipynb_checkpoints/
+
+# notebooks/
+notebooks/**/.ipynb_checkpoints/
+notebooks/**/*.ipynb
+
+# data types
+*.csv
+*.parquet
+
+.env
+
+# Modelo Random Forest entrenado localmente (binario regenerable, ver
+# ml/train_random_forest.py). Las métricas sí se versionan
+# (ml/metrics_random_forest.json) como documentación del resultado.
+ml/model_random_forest.pkl
+
+# Modelo XGBoost entrenado localmente (binario regenerable, ver
+# ml/train_xgboost.py). Las métricas sí se versionan
+# (ml/metrics_xgboost.json) como documentación del resultado.
+ml/model_xgboost.pkl
+
+# Resultados de cada modelo
+ml/*.json
