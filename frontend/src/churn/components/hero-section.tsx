@@ -97,18 +97,21 @@ export const HeroSection = () => {
           </div>
         </div>
 
-        {/* <div className="relative">
+        <div className="flex flex-col gap-6">
           <div className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
             <img
-              src="../../../public/churn-hero.png"
-              alt="Visualización de la red de clientes de telecomunicaciones analizada por el modelo de predicción de abandono"
+              src={role === 'agent' ? '/agente.jpg' : '/analista.jpg'}
+              alt={
+                role === 'agent'
+                  ? 'Modo Agente de Atención'
+                  : 'Modo Analista de Negocio'
+              }
               width={720}
               height={540}
-              // priority
               className="h-full w-full object-cover"
             />
           </div>
-        </div> */}
+        </div>
       </div>
 
       <div className="border-t border-border bg-primary/18 py-18">

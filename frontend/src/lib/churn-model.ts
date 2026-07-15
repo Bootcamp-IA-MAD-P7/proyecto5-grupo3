@@ -1,3 +1,4 @@
+// @path: frontend/src/lib/churn-model.ts
 // Cliente-side scoring engine that emulates the trained logistic-regression /
 // gradient-boosting ensemble described in the ChurnPrediction backend.
 // Coefficients are tuned to reflect the well-known drivers of the
