@@ -24,7 +24,7 @@ from src.models.models_registry import ModelRegistry
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def select_best_model(db: Session, primary_metric: str = "roc_auc") -> dict | None:
+def select_best_model(db: Session, primary_metric: str = "f1_score") -> dict | None:
     """Busca todas las métricas JSON en ml/, compara y registra el ganador en la DB."""
     # 1. Escanear todos los archivos metrics_*.json en la carpeta ml/
     metric_files = glob.glob(os.path.join(BASE_DIR, "metrics_*.json"))
@@ -109,13 +109,15 @@ if __name__ == "__main__":
     from src.database.connection import engine 
     from src.models.models_registry import Base
     
+    db_session = None
     try:
         print("🔨 Verificando y creando tablas en la base de datos...")
         Base.metadata.create_all(bind=engine)
-        
+
         db_session = SessionLocal()
-        select_best_model(db_session, primary_metric="roc_auc")
+        select_best_model(db_session, primary_metric="f1_score")
     except Exception as e:
         print(f"❌ No se pudo inicializar la base de datos para el selector: {e}")
     finally:
-        db_session.close()
+        if db_session is not None:
+            db_session.close()
