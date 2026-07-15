@@ -1,3 +1,4 @@
+// @path: frontend/src/churn/components/metrics-section.tsx
 import { TrophyIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -43,7 +44,7 @@ export function MetricsSection() {
           {MODELS.map((model) => (
             <Card
               key={model.name}
-              className={model.best ? "border-primary/40 bg-primary/5" : ""}
+              className={model.best ? "border-primary/40 bg-primary/18" : ""}
             >
               <CardHeader>
                 <div className="flex items-center justify-between">

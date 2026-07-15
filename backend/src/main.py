@@ -6,14 +6,52 @@ from src.controllers import prediction
 from sqlalchemy.orm import Session
 from contextlib import asynccontextmanager
 
-from src.database.connection import get_db, engine, Base
+from src.database.connection import get_db, engine, Base, SessionLocal
 from src.models.prediction import CustomerPrediction
+from src.models.models_registry import ModelRegistry # Asegúrate de que el archivo del modelo del selector coincida
 from src.schemas.prediction import PredictionCreate, PredictionResponse
 
 # Conexión directa con el pipeline de inferencia
 from ml.predict import predict_customer_churn
 
-app = FastAPI(title="Backend Proyecto 5 Grupo 3")
+#   Importar la función del selector de modelo real
+from ml.selector import select_best_model
+
+
+# Creación automática de la tabla independiente al arrancar
+Base.metadata.create_all(bind=engine)
+
+# =====================================================================
+# Evento de arranque automático que ejecuta el selector
+# =====================================================================
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Maneja el arranque (startup) y apagado (shutdown) de la aplicación.
+    Sustituye de forma moderna al antiguo @app.on_event("startup").
+    """
+    # ------------------ CÓDIGO DE ARRANQUE (Startup) ------------------
+    print("\n [FastAPI Arranque] Inicializando base de datos y modelos...")
+    db = SessionLocal()
+    try:
+        print(" [FastAPI Arranque] Ejecutando  selector personalizado ml.selector...")
+        # Llama directamente a tu función importada del selector
+        select_best_model(db, primary_metric="roc_auc")
+        print("✅ [FastAPI Arranque] ¡La selección del modelo activo finalizó con éxito!")
+    except Exception as e:
+        print(f"❌ [FastAPI Arranque] Error al seleccionar el modelo activo: {e}")
+    finally:
+        db.close()
+
+    yield  # Aquí es donde FastAPI se queda encendido escuchando peticiones del frontend
+
+    # ------------------ CÓDIGO DE APAGADO (Shutdown) ------------------
+    print("[FastAPI Apagado] Limpiando recursos y cerrando el servidor.")
+
+
+# Instancia de FastAPI con el evento de arranque personalizado
+app = FastAPI(title="Backend Proyecto 5 Grupo 3", lifespan=lifespan)
+#app = FastAPI(title="Backend Proyecto 5 Grupo 3")
 
 # Configuración de CORS
 origins = [
@@ -31,32 +69,50 @@ app.add_middleware(
     allow_headers=["*"],            # Permite todas las cabeceras
 )
 
-#app.include_router(admin.router)
+# =====================================================================
+# Endpoint administrativo 
+# =====================================================================
+@app.post("/admin/select-model", status_code=200, tags=["Admin"])
+def trigger_model_selection(db: Session = Depends(get_db)):
+    """
+    Forces the backend to re-run your selector.py logic to re-scan 
+    metrics and update the active model in the database without restarting.
+    """
+    # Llama físicamente a la función del script selector
+    selection_result = select_best_model(db, primary_metric="roc_auc")
+    
+    if not selection_result:
+        raise HTTPException(
+            status_code=404, 
+            detail="No valid metric files (metrics_*.json) were found in the 'ml/' directory."
+        )
+        
+    return {
+        "status": "success",
+        "message": "The active model has been successfully updated using your selector.",
+        "active_model": selection_result["model_name"],
+        "metric_value": selection_result["metric_value"]
+    }
+
 
 # =====================================================================
-# Creación automática de tu tabla independiente al arrancar
-
-Base.metadata.create_all(bind=engine)
-
-
-# =====================================================================
-#  NUEVO: Endpoint de Inferencia y Persistencia
+#   Endpoint de Inferencia y Persistencia 
 # =====================================================================
 @app.post("/predict", response_model=PredictionResponse, status_code=201)
 def create_prediction(payload: PredictionCreate, db: Session = Depends(get_db)):
     """
-    Endpoint de inferencia. Recibe los datos validados de Vue, ejecuta la IA,
+    Endpoint de inferencia. Recibe los datos validados de React, ejecuta la IA,
     guarda en PostgreSQL y retorna los resultados financieros al Front-End.
     """
     try:
         # Pydantic v2 extrae los datos limpios en un diccionario estándar
         customer_data = payload.model_dump()
         
-        # Invoca la función predictora de tu carpeta externa ml/
+        # Invoca la función predictora de la carpeta externa ml/
+        # (Ahora cargará de manera dinámica el .pkl que el selector marcó como activo en DB)
         prediction_result = predict_customer_churn(customer_data)
         
-        # Mapea de forma explícita cada columna a tu modelo SQLAlchemy
-       
+        # Mapea de forma explícita cada columna del modelo SQLAlchemy
         new_prediction = CustomerPrediction(
             gender=customer_data["gender"],
             senior_citizen=customer_data["senior_citizen"],
@@ -88,7 +144,7 @@ def create_prediction(payload: PredictionCreate, db: Session = Depends(get_db)):
             clv_exposed=prediction_result.get("clv_exposed")
         )
         
-        # Escritura atómica en tu base de datos
+        # Escritura atómica en LA base de datos
         db.add(new_prediction)
         db.commit()
         db.refresh(new_prediction) # Captura el id y la fecha autogenerada
@@ -98,15 +154,12 @@ def create_prediction(payload: PredictionCreate, db: Session = Depends(get_db)):
     except KeyError as ke:
         raise HTTPException(
             status_code=400, 
-            detail=f"Error en la estructura interna de la IA. Falta el campo clave: {str(ke)}"
+            detail=f"Inference pipeline key error. Missing field: {str(ke)}" 
         )
     except Exception as e:
         db.rollback() # Revierte la sesión de base de datos ante caídas o errores de escritura
         raise HTTPException(
             status_code=500, 
-            detail=f"Fallo crítico en el pipeline del servidor de inferencia: {str(e)}"
+            detail=f"Critical failure in the inference server pipeline: {str(e)}" 
         )
 
-#@app.get("/")
-#def read_root():
- #   return {"status": "ACEPTADO", "message": "Bienvenido al backend independiente"}

@@ -1,41 +1,50 @@
-"use client"
-
+// @path: frontend/src/churn/components/navbar.tsx
 import {
   ActivityIcon,
   HeadphonesIcon,
   LineChartIcon,
   MenuIcon,
   XIcon,
-} from "lucide-react"
-import * as React from "react"
+} from 'lucide-react';
+import { useState } from 'react';
+import { Link, useLocation } from 'react-router';
 
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { cn } from "@/lib/utils"
+import { Button } from '@/components/ui/button';
+import {
+  NavigationMenu,
+  NavigationMenuList,
+} from '@/components/ui/navigation-menu';
+import { Separator } from '@/components/ui/separator';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { cn } from '@/lib/utils';
+import {
+  NavigationMenuItem,
+  NavigationMenuLink,
+} from '@radix-ui/react-navigation-menu';
 
-export type Role = "agent" | "analyst"
+import type { Role } from '../context/RoleChurnContext';
+import { useRoleChurn } from '../hooks/useRoleChurn';
 
 const NAV_LINKS = [
-  { label: "Panel", href: "#predictor" },
-  { label: "El Modelo", href: "#modelo" },
-  { label: "Métricas", href: "#metricas" },
-  { label: "Documentación", href: "#docs" },
-]
+  { label: 'Panel', href: '/panel' },
+  { label: 'Métricas', href: '/metricas' },
+  { label: 'El Modelo', href: '/modelo' },
+  { label: 'Documentación', href: '/docs' },
+];
 
-export function Navbar({
-  role,
-  onRoleChange,
-}: {
-  role: Role
-  onRoleChange: (role: Role) => void
-}) {
-  const [open, setOpen] = React.useState(false)
+export function Navbar() {
+  const [open, setOpen] = useState(false);
+  const { role, setRole } = useRoleChurn();
+  const { pathname } = useLocation();
+
+  const isActive = (path: string) => {
+    return pathname === path;
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <a href="#" className="flex items-center gap-2.5">
+        <Link to="/" className="flex items-center gap-2.5">
           <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
             <ActivityIcon className="size-5" />
           </span>
@@ -47,24 +56,32 @@ export function Navbar({
               Retención Inteligente
             </span>
           </span>
-        </a>
+        </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-            >
-              {link.label}
-            </a>
-          ))}
-        </nav>
+        <NavigationMenu className="hidden md:block">
+          <NavigationMenuList>
+            {NAV_LINKS.map((link) => (
+              <NavigationMenuItem key={link.href}>
+                <NavigationMenuLink asChild>
+                  <Link
+                    to={link.href}
+                    className={cn(
+                      'rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
+                      isActive(link.href) && 'bg-accent text-accent-foreground',
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            ))}
+          </NavigationMenuList>
+        </NavigationMenu>
 
         <div className="flex items-center gap-3">
           <RoleSwitcher
             role={role}
-            onRoleChange={onRoleChange}
+            onRoleChange={setRole}
             className="hidden sm:flex"
           />
           <Button
@@ -84,22 +101,25 @@ export function Navbar({
         <div className="border-t border-border/70 bg-background md:hidden">
           <nav className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-4 sm:px-6">
             {NAV_LINKS.map((link) => (
-              <a
+              <Link
                 key={link.href}
-                href={link.href}
+                to={link.href}
                 onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                className={cn(
+                  'rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
+                  isActive(link.href) && 'bg-accent text-accent-foreground',
+                )}
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
             <Separator className="my-2" />
-            <RoleSwitcher role={role} onRoleChange={onRoleChange} />
+            <RoleSwitcher role={role} onRoleChange={setRole} />
           </nav>
         </div>
       ) : null}
     </header>
-  )
+  );
 }
 
 export function RoleSwitcher({
@@ -107,35 +127,35 @@ export function RoleSwitcher({
   onRoleChange,
   className,
 }: {
-  role: Role
-  onRoleChange: (role: Role) => void
-  className?: string
+  role: Role;
+  onRoleChange: (role: Role) => void;
+  className?: string;
 }) {
   return (
     <ToggleGroup
       type="single"
       value={role}
       onValueChange={(value) => {
-        const next = value as Role | undefined
-        if (next) onRoleChange(next)
+        const next = value as Role | undefined;
+        if (next) onRoleChange(next);
       }}
-      className={cn("rounded-lg border border-border bg-card p-0.5", className)}
+      className={cn('rounded-lg border border-border bg-card p-0.5', className)}
       aria-label="Seleccionar perfil de usuario"
     >
       <ToggleGroupItem
         value="agent"
-        className="gap-1.5 rounded-md px-3 text-xs font-medium data-[pressed]:bg-primary data-[pressed]:text-primary-foreground"
+        className="cursor-pointer gap-1.5 rounded-md px-3 text-xs font-medium data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
       >
         <HeadphonesIcon />
         Agente
       </ToggleGroupItem>
       <ToggleGroupItem
         value="analyst"
-        className="gap-1.5 rounded-md px-3 text-xs font-medium data-[pressed]:bg-primary data-[pressed]:text-primary-foreground"
+        className="cursor-pointer gap-1.5 rounded-md px-3 text-xs font-medium data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
       >
         <LineChartIcon />
         Analista
       </ToggleGroupItem>
     </ToggleGroup>
-  )
+  );
 }
