@@ -1,24 +1,35 @@
 // @path: frontend/src/churn/components/metrics-section.tsx
-import { TrophyIcon } from "lucide-react"
+import { useEffect, useState } from 'react'
+import { TrophyIcon } from 'lucide-react'
 
-import { Badge } from "@/components/ui/badge"
+import { Badge } from '@/components/ui/badge'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
+} from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { getModelAll } from '@/churn/api/predict.api'
+import type { ModelInfo } from '@/churn/types/predict.interface'
 
-const MODELS = [
-  { name: "XGBoost", accuracy: 85.9, f1: 82.1, auc: 86, best: true },
-  { name: "Gradient Boosting", accuracy: 84.7, f1: 80.4, auc: 85 },
-  { name: "Random Forest", accuracy: 83.2, f1: 78.9, auc: 84 },
-  { name: "Regresión Logística", accuracy: 80.5, f1: 75.6, auc: 82 },
-]
+const DISPLAY_NAMES: Record<string, string> = {
+  xgboost: 'XGBoost',
+  gradient_boosting: 'Gradient Boosting',
+  random_forest: 'Random Forest',
+  logistic_regression: 'Regresión Logística',
+}
 
 export function MetricsSection() {
+  const [models, setModels] = useState<ModelInfo[]>([])
+
+  useEffect(() => {
+    getModelAll()
+      .then(setModels)
+      .catch(() => {})
+  }, [])
+
   return (
     <section id="metricas" className="border-b border-border bg-muted/40">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
@@ -41,31 +52,39 @@ export function MetricsSection() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {MODELS.map((model) => (
-            <Card
-              key={model.name}
-              className={model.best ? "border-primary/40 bg-primary/18" : ""}
-            >
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">{model.name}</CardTitle>
-                  {model.best ? (
-                    <Badge className="gap-1">
-                      <TrophyIcon className="size-3" />
-                      Mejor
-                    </Badge>
-                  ) : null}
-                </div>
-                <CardDescription>
-                  ROC-AUC {(model.auc / 100).toFixed(2)}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-4">
-                <Metric label="Accuracy" value={model.accuracy} />
-                <Metric label="F1-Score" value={model.f1} />
-              </CardContent>
-            </Card>
-          ))}
+          {models.map((model) => {
+            const accuracy = (model.holdout.accuracy * 100).toFixed(1)
+            const f1 = (model.holdout.f1_score * 100).toFixed(1)
+            const auc = (model.holdout.roc_auc * 100).toFixed(1)
+            const displayName =
+              DISPLAY_NAMES[model.algorithm] ?? model.model_name
+
+            return (
+              <Card
+                key={model.algorithm}
+                className={
+                  model.is_active ? 'border-primary/40 bg-primary/18' : ''
+                }
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base">{displayName}</CardTitle>
+                    {model.is_active ? (
+                      <Badge className="gap-1">
+                        <TrophyIcon className="size-3" />
+                        Mejor
+                      </Badge>
+                    ) : null}
+                  </div>
+                  <CardDescription>ROC-AUC {auc}%</CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-4">
+                  <Metric label="Accuracy" value={Number(accuracy)} />
+                  <Metric label="F1-Score" value={Number(f1)} />
+                </CardContent>
+              </Card>
+            )
+          })}
         </div>
       </div>
     </section>

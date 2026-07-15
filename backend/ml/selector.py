@@ -1,3 +1,4 @@
+# @path: backend/ml/selector.py
 """Selector automático de modelos para el backend de Telco Customer Churn.
 
 Escanea los archivos de métricas JSON en `ml/`, selecciona el modelo con mejor 

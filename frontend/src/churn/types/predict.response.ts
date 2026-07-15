@@ -1,6 +1,5 @@
 // @path: frontend/src/churn/types/predict.response.ts
-import type { Predict } from './predict.interface';
+import type { ModelInfo, SavedPrediction } from './predict.interface'
 
-export interface PredictResponse {
-    metric: Predict;
-}
+export type ModelAllResponse = ModelInfo[]
+export type PredictionsResponse = SavedPrediction[]

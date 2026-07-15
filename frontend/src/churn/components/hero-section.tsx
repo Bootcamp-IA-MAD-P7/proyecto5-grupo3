@@ -1,4 +1,5 @@
 // @path: frontend/src/churn/components/hero-section.tsx
+import { useEffect, useState } from 'react';
 import {
   ArrowRightIcon,
   BrainCircuitIcon,
@@ -12,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router';
 import type { Role } from '../context/RoleChurnContext';
 import { useRoleChurn } from '../hooks/useRoleChurn';
+import { getModelAll } from '@/churn/api/predict.api';
+import type { ModelInfo } from '@/churn/types/predict.interface';
 
 const ROLE_COPY: Record<
   Role,
@@ -57,6 +60,16 @@ const MODEL_STEPS = [
 export const HeroSection = () => {
   const { role } = useRoleChurn();
   const copy = ROLE_COPY[role];
+  const [activeModel, setActiveModel] = useState<ModelInfo | null>(null);
+
+  useEffect(() => {
+    getModelAll()
+      .then((models) => {
+        const winner = models.find((m) => m.is_active) ?? models[0] ?? null;
+        setActiveModel(winner);
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <section
@@ -118,13 +131,34 @@ export const HeroSection = () => {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <dl className="mt-2 grid grid-cols-1 gap-6 sm:grid-cols-3 lg:gap-8">
             <div className="flex justify-center">
-              <Stat value="85.9%" label="Accuracy" />
+              <Stat
+                value={
+                  activeModel
+                    ? `${(activeModel.holdout.accuracy * 100).toFixed(1)}%`
+                    : '—'
+                }
+                label="Accuracy"
+              />
             </div>
             <div className="flex justify-center">
-              <Stat value="0.86" label="ROC-AUC" />
+              <Stat
+                value={
+                  activeModel
+                    ? activeModel.holdout.roc_auc.toFixed(2)
+                    : '—'
+                }
+                label="ROC-AUC"
+              />
             </div>
             <div className="flex justify-center">
-              <Stat value="7K+" label="Clientes de entrenamiento" />
+              <Stat
+                value={
+                  activeModel
+                    ? `${(activeModel.n_train / 1000).toFixed(1)}K+`
+                    : '—'
+                }
+                label="Clientes de entrenamiento"
+              />
             </div>
           </dl>
         </div>
