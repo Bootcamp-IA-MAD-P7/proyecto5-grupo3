@@ -1,4 +1,5 @@
 # ml/predict.py
+import json
 import os
 import random
 import joblib
@@ -11,9 +12,12 @@ from src.models.models_registry import ModelRegistry
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+DEFAULT_THRESHOLD = 0.5
+
 # Variable global para mantener el modelo y su ruta en memoria RAM
 _cached_model = None
 _cached_model_path = None
+_cached_threshold = DEFAULT_THRESHOLD
 
 # El orden EXACTO de las columnas con las que entrenaste tus modelos
 FEATURE_COLUMNS = [
@@ -39,37 +43,53 @@ FEATURE_COLUMNS = [
 ]
 
 
+def _load_threshold_for(algorithm: str) -> float:
+    """Lee ml/threshold_<algoritmo>.json (si existe) con el umbral óptimo
+    calculado por `ml/tune_threshold.py`. Si no existe, usa DEFAULT_THRESHOLD."""
+    threshold_path = os.path.join(BASE_DIR, f"threshold_{algorithm}.json")
+    if not os.path.exists(threshold_path):
+        return DEFAULT_THRESHOLD
+    try:
+        with open(threshold_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return float(data["selected"]["threshold"])
+    except Exception as e:
+        print(f"⚠️ No se pudo leer el umbral afinado en {threshold_path} ({e}). Usando {DEFAULT_THRESHOLD}.")
+        return DEFAULT_THRESHOLD
+
+
 def get_active_model():
     """
     Consulta la base de datos para ver cuál es el modelo marcado como activo (is_active=True).
-    Si cambia en la base de datos, lo recarga automáticamente.
+    Si cambia en la base de datos, lo recarga automáticamente (junto con su umbral afinado).
     """
-    global _cached_model, _cached_model_path
-    
+    global _cached_model, _cached_model_path, _cached_threshold
+
     db = SessionLocal()
     try:
         # 1. Preguntar a la base de datos por el modelo activo
         active_record = db.query(ModelRegistry).filter(ModelRegistry.is_active == True).first()
-        
+
         if not active_record:
             print("⚠️ Alerta: No hay ningún modelo activo registrado en la base de datos.")
             return None
-            
+
         # Se construye la ruta absoluta del archivo .pkl ganador
         absolute_pkl_path = os.path.normpath(os.path.join(BASE_DIR, "..", active_record.file_path))
-        
+
         # 2. Si el modelo no está en caché, o si el modelo activo ha cambiado, lo cargamos
         if _cached_model is None or _cached_model_path != absolute_pkl_path:
             if os.path.exists(absolute_pkl_path):
                 print(f"🔄 Cargando el nuevo modelo activo en memoria: {active_record.model_name} ({absolute_pkl_path})")
                 _cached_model = joblib.load(absolute_pkl_path)
                 _cached_model_path = absolute_pkl_path
+                _cached_threshold = _load_threshold_for(active_record.algorithm)
             else:
                 print(f"⚠️ Alerta: El archivo físico no existe en {absolute_pkl_path}. Usando Mock.")
                 _cached_model = None
-                
+
         return _cached_model
-        
+
     except Exception as e:
         print(f"❌ Error al consultar el modelo activo en la base de datos: {e}")
         return _cached_model  # Devolvemos el que tengamos en caché como plan de rescate
@@ -103,8 +123,8 @@ def predict_customer_churn(customer_data: dict) -> dict:
             # Realizamos la inferencia
             probabilities = trained_model.predict_proba(features_df)
             churn_probability = float(probabilities[0][1])  # Probabilidad de fuga (clase 1)
-            
-            prediction_label = "High Risk" if churn_probability >= 0.5 else "Low Risk"
+
+            prediction_label = "High Risk" if churn_probability >= _cached_threshold else "Low Risk"
             model_confidence = churn_probability if churn_probability >= 0.5 else (1.0 - churn_probability)
             
         except Exception as e:
