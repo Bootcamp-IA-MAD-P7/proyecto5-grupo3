@@ -34,7 +34,13 @@ from sklearn.metrics import (
     recall_score,
     roc_auc_score,
 )
-from sklearn.model_selection import GridSearchCV, StratifiedKFold, cross_validate, train_test_split
+from sklearn.model_selection import (
+    GridSearchCV,
+    RandomizedSearchCV,
+    StratifiedKFold,
+    cross_validate,
+    train_test_split,
+)
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
@@ -142,15 +148,25 @@ def cross_validate_model(pipeline: Pipeline, X: pd.DataFrame, y: pd.Series) -> d
     }
 
 
-def tune_hyperparameters(pipeline: Pipeline, X_train: pd.DataFrame, y_train: pd.Series) -> GridSearchCV:
-    param_grid = {
-        "model__n_estimators": [200, 400],
-        "model__max_depth": [None, 10, 20],
+def tune_hyperparameters(pipeline: Pipeline, X_train: pd.DataFrame, y_train: pd.Series) -> RandomizedSearchCV:
+    param_distributions = {
+        "model__n_estimators": [200, 300, 400, 600],
+        "model__max_depth": [None, 10, 20, 30],
         "model__min_samples_leaf": [1, 2, 4],
+        "model__min_samples_split": [2, 5, 10],
+        "model__max_features": ["sqrt", "log2"],
+        "model__class_weight": ["balanced", "balanced_subsample"],
     }
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE)
-    search = GridSearchCV(
-        pipeline, param_grid, scoring="roc_auc", cv=cv, n_jobs=-1, refit=True
+    search = RandomizedSearchCV(
+        pipeline,
+        param_distributions,
+        n_iter=40,
+        scoring="roc_auc",
+        cv=cv,
+        n_jobs=-1,
+        random_state=RANDOM_STATE,
+        refit=True,
     )
     search.fit(X_train, y_train)
     return search
