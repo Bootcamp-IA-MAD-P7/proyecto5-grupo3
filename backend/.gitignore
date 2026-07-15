@@ -39,5 +39,15 @@ ml/model_random_forest.pkl
 # (ml/metrics_xgboost.json) como documentación del resultado.
 ml/model_xgboost.pkl
 
+# Modelo Regresión Logística entrenado localmente (binario regenerable, ver
+# ml/train_logistic_regression.py). Las métricas sí se versionan
+# (ml/metrics_logistic_regression.json) como documentación del resultado.
+ml/model_logistic_regression.pkl
+
+# Modelo Gradient Boosting entrenado localmente (binario regenerable, ver
+# ml/train_gradient_boosting.py). Las métricas sí se versionan
+# (ml/metrics_gradient_boosting.json) como documentación del resultado.
+ml/model_gradient_boosting.pkl
+
 # Resultados de cada modelo
 ml/*.json
