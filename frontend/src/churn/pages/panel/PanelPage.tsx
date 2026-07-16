@@ -64,8 +64,8 @@ export const PanelPage = () => {
               <span className="font-medium text-foreground">
                 {activeModel.model_name}
               </span>{' '}
-              · ROC-AUC{' '}
-              {(activeModel.holdout.roc_auc * 100).toFixed(1)}%
+              · F1-Score{' '}
+              {(activeModel.holdout.f1_score * 100).toFixed(1)}%
             </p>
           )}
         </div>
