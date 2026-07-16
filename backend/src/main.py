@@ -1,3 +1,4 @@
+# @path: backend/src/main.py
 # Instancia FastAPI, incluye los routers y levanta el servidor
 
 import glob as _glob
@@ -63,6 +64,7 @@ origins = [
     "http://localhost:3000",  # Puerto Create React App
     "http://127.0.0.1:5173",
     "http://127.0.0.1:3000",
+    "https://churn-prediction-ai.netlify.app",  # Frontend en producción (Netlify)
 ]
 
 app.add_middleware(

@@ -1,0 +1,63 @@
+{
+  "model": "XGBClassifier",
+  "best_params": {
+    "model__learning_rate": 0.01,
+    "model__max_depth": 3,
+    "model__n_estimators": 400,
+    "model__subsample": 0.8
+  },
+  "holdout": {
+    "accuracy": 0.7444996451383961,
+    "precision": 0.5121527777777778,
+    "recall": 0.7887700534759359,
+    "f1_score": 0.6210526315789474,
+    "roc_auc": 0.8549226278126534,
+    "confusion_matrix": {
+      "true_negative": 754,
+      "false_positive": 281,
+      "false_negative": 79,
+      "true_positive": 295
+    },
+    "classification_report": {
+      "0": {
+        "precision": 0.9051620648259304,
+        "recall": 0.7285024154589372,
+        "f1-score": 0.8072805139186295,
+        "support": 1035.0
+      },
+      "1": {
+        "precision": 0.5121527777777778,
+        "recall": 0.7887700534759359,
+        "f1-score": 0.6210526315789474,
+        "support": 374.0
+      },
+      "accuracy": 0.7444996451383961,
+      "macro avg": {
+        "precision": 0.7086574213018542,
+        "recall": 0.7586362344674366,
+        "f1-score": 0.7141665727487885,
+        "support": 1409.0
+      },
+      "weighted avg": {
+        "precision": 0.800843063153816,
+        "recall": 0.7444996451383961,
+        "f1-score": 0.7578488403948247,
+        "support": 1409.0
+      }
+    }
+  },
+  "cross_validation": {
+    "accuracy_mean": 0.7598560128352831,
+    "precision_mean": 0.5312700365849434,
+    "recall_mean": 0.8214046822742475,
+    "f1_mean": 0.6449667343169259,
+    "roc_auc_mean": 0.8642379481177789,
+    "accuracy_std": 0.015478204350628974,
+    "precision_std": 0.020552805566487312,
+    "recall_std": 0.023987185387345948,
+    "f1_std": 0.018619815943983844,
+    "roc_auc_std": 0.01045195188017496
+  },
+  "n_train": 5634,
+  "n_test": 1409
+}

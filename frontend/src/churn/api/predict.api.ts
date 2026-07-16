@@ -1,7 +1,7 @@
-
+// @path: frontend/src/churn/api/predict.api.ts
 import axios from 'axios';
-import type { ModelAllResponse, PredictionsResponse } from '../types/predict.response';
 import type { SavedPrediction } from '../types/predict.interface';
+import type { ModelAllResponse, PredictionsResponse } from '../types/predict.response';
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
