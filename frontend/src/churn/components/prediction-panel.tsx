@@ -1,3 +1,4 @@
+// @path: frontend/src/churn/components/prediction-panel.tsx
 import {
   ArrowDownRightIcon,
   ArrowUpRightIcon,
@@ -8,7 +9,6 @@ import {
   TrendingDownIcon,
 } from "lucide-react"
 
-import type { Role } from "@/churn/components/navbar"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -26,6 +26,7 @@ import {
   type PredictionResult,
 } from "@/lib/churn-model"
 import { cn } from "@/lib/utils"
+import type { Role } from '../context/RoleChurnContext'
 
 const tokenClasses: Record<
   string,
