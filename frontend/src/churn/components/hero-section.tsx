@@ -6,7 +6,10 @@ import {
   GaugeIcon,
   ShieldCheckIcon,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
+import { getModelAll } from '@/churn/api/predict.api';
+import type { ModelInfo } from '@/churn/types/predict.interface';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router';
@@ -57,6 +60,16 @@ const MODEL_STEPS = [
 export const HeroSection = () => {
   const { role } = useRoleChurn();
   const copy = ROLE_COPY[role];
+  const [activeModel, setActiveModel] = useState<ModelInfo | null>(null);
+
+  useEffect(() => {
+    getModelAll()
+      .then((models) => {
+        const winner = models.find((m) => m.is_active) ?? models[0] ?? null;
+        setActiveModel(winner);
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <section
@@ -97,31 +110,63 @@ export const HeroSection = () => {
           </div>
         </div>
 
-        {/* <div className="relative">
+        <div className="flex flex-col gap-6">
           <div className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
             <img
-              src="../../../public/churn-hero.png"
-              alt="Visualización de la red de clientes de telecomunicaciones analizada por el modelo de predicción de abandono"
+              src={role === 'agent' ? '/agente.jpg' : '/analista.jpg'}
+              alt={
+                role === 'agent'
+                  ? 'Modo Agente de Atención'
+                  : 'Modo Analista de Negocio'
+              }
               width={720}
               height={540}
-              // priority
               className="h-full w-full object-cover"
             />
           </div>
-        </div> */}
+        </div>
       </div>
 
       <div className="border-t border-border bg-primary/18 py-18">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <dl className="mt-2 grid grid-cols-1 gap-6 sm:grid-cols-3 lg:gap-8">
+          <dl className="mt-2 grid grid-cols-1 gap-6 sm:grid-cols-4 lg:gap-8">
             <div className="flex justify-center">
-              <Stat value="85.9%" label="Accuracy" />
+              <Stat
+                value={
+                  activeModel
+                    ? `${(activeModel.holdout.f1_score * 100).toFixed(1)}%`
+                    : '—'
+                }
+                label="F1-Score"
+              />
             </div>
             <div className="flex justify-center">
-              <Stat value="0.86" label="ROC-AUC" />
+              <Stat
+                value={
+                  activeModel
+                    ? `${(activeModel.holdout.accuracy * 100).toFixed(1)}%`
+                    : '—'
+                }
+                label="Accuracy"
+              />
             </div>
             <div className="flex justify-center">
-              <Stat value="7K+" label="Clientes de entrenamiento" />
+              <Stat
+                value={
+                  activeModel ? activeModel.holdout.roc_auc.toFixed(2) : '—'
+                }
+                label="ROC-AUC"
+              />
+            </div>
+            <div className="flex justify-center">
+              <Stat
+                value={
+                  activeModel
+                    ? `${(activeModel.n_train / 1000).toFixed(1)}K+`
+                    : '—'
+                }
+                label="Clientes de entrenamiento"
+              />
             </div>
           </dl>
         </div>

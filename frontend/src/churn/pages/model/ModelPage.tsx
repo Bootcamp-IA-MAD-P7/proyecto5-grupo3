@@ -6,4 +6,4 @@ export const ModelPage = () => {
       Página "El Modelo" en construcción...
     </div>
   );
-};
+}

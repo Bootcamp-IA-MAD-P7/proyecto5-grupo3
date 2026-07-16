@@ -28,8 +28,8 @@ import { useRoleChurn } from '../hooks/useRoleChurn';
 const NAV_LINKS = [
   { label: 'Panel', href: '/panel' },
   { label: 'Métricas', href: '/metricas' },
-  { label: 'El Modelo', href: '/modelo' },
-  { label: 'Documentación', href: '/docs' },
+  // { label: 'El Modelo', href: '/modelo' },
+  { label: 'Predicciones', href: '/predicciones' },
 ];
 
 export function Navbar() {

@@ -1,21 +1,26 @@
+# @path: backend/src/main.py
 # Instancia FastAPI, incluye los routers y levanta el servidor
+
+import glob as _glob
+import json
+import os
 
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from src.controllers import prediction
 from sqlalchemy.orm import Session
+from typing import List
 from contextlib import asynccontextmanager
 
 from src.database.connection import get_db, engine, Base, SessionLocal
 from src.models.prediction import CustomerPrediction
-from src.models.models_registry import ModelRegistry # Asegúrate de que el archivo del modelo del selector coincida
+from src.models.models_registry import ModelRegistry
 from src.schemas.prediction import PredictionCreate, PredictionResponse
 
-# Conexión directa con el pipeline de inferencia
 from ml.predict import predict_customer_churn
-
-#   Importar la función del selector de modelo real
 from ml.selector import select_best_model
+
+ML_DIR = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ml"))
 
 
 # Creación automática de la tabla independiente al arrancar
@@ -59,6 +64,7 @@ origins = [
     "http://localhost:3000",  # Puerto Create React App
     "http://127.0.0.1:5173",
     "http://127.0.0.1:3000",
+    "https://churn-prediction-ai.netlify.app",  # Frontend en producción (Netlify)
 ]
 
 app.add_middleware(
@@ -93,6 +99,62 @@ def trigger_model_selection(db: Session = Depends(get_db)):
         "active_model": selection_result["model_name"],
         "metric_value": selection_result["metric_value"]
     }
+
+
+# =====================================================================
+#  Endpoint: Métricas de todos los modelos evaluados
+# =====================================================================
+@app.get("/model/all", response_model=List[dict], tags=["Models"])
+def get_all_models(db: Session = Depends(get_db)):
+    """
+    Escanea los archivos metrics_*.json en ml/, cruza con la tabla
+    model_registry para saber cuál está activo y retorna la lista
+    completa de modelos con sus métricas de holdout y validación cruzada.
+    """
+    metric_files = _glob.glob(os.path.join(ML_DIR, "metrics_*.json"))
+
+    active_algorithms = set()
+    try:
+        active_records = db.query(ModelRegistry).filter(ModelRegistry.is_active == True).all()
+        active_algorithms = {r.algorithm for r in active_records}
+    except Exception:
+        pass
+
+    models = []
+    for file_path in sorted(metric_files):
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+
+            algo_name = os.path.basename(file_path).replace("metrics_", "").replace(".json", "")
+
+            models.append({
+                "model_name": data.get("model", "Unknown"),
+                "algorithm": algo_name,
+                "is_active": algo_name in active_algorithms,
+                "holdout": data.get("holdout", {}),
+                "cross_validation": data.get("cross_validation", {}),
+                "best_params": data.get("best_params", {}),
+                "n_train": data.get("n_train", 0),
+                "n_test": data.get("n_test", 0),
+            })
+        except Exception as e:
+            print(f"❌ Error leyendo métricas en {file_path}: {e}")
+
+    models.sort(key=lambda m: m["holdout"].get("roc_auc", 0), reverse=True)
+    return models
+
+
+# =====================================================================
+#  Endpoint: Historial de predicciones guardadas
+# =====================================================================
+@app.get("/predictions", response_model=List[PredictionResponse], tags=["Predictions"])
+def get_predictions(db: Session = Depends(get_db)):
+    """
+    Retorna el historial completo de predicciones almacenadas en
+    customer_predictions para mostrarlo en la tabla del frontend.
+    """
+    return db.query(CustomerPrediction).order_by(CustomerPrediction.id.desc()).all()
 
 
 # =====================================================================

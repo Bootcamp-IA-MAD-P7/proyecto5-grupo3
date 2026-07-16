@@ -4,11 +4,11 @@ import { createHashRouter, Navigate } from 'react-router';
 import { AdminLayout } from '@/admin/layouts/AdminLayout';
 import { AdminPage } from '@/admin/pages/AdminPage';
 import { ChurnLayout } from '@/churn/layouts/ChurnLayout';
-import { DocsPage } from '@/churn/pages/docs/DocsPage';
 import { HomePage } from '@/churn/pages/home/HomePage';
 import { MetricsPage } from '@/churn/pages/metrics/MetricsPage';
 import { ModelPage } from '@/churn/pages/model/ModelPage';
 import { PanelPage } from '@/churn/pages/panel/PanelPage';
+import { PredictsPage } from '@/churn/pages/predicts/PredictsPage';
 
 // export const appRouter = createBrowserRouter([
 // export const appRouter = createHashRouter([
@@ -34,8 +34,8 @@ export const appRouter = createHashRouter([
         element: <ModelPage />,
       },
       {
-        path: 'docs',
-        element: <DocsPage />,
+        path: 'predicciones',
+        element: <PredictsPage />,
       },
       {
         path: '*',

@@ -1,3 +1,4 @@
+// @path: frontend/src/churn/components/prediction-panel.tsx
 import {
   ArrowDownRightIcon,
   ArrowUpRightIcon,

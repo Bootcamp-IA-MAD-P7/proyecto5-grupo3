@@ -282,7 +282,7 @@ function BooleanField({
           value="yes"
           size="sm"
           className={cn(
-            'rounded px-2.5 text-xs data-[state=on]:bg-primary data-[state=on]:text-primary-foreground',
+            "cursor-pointer rounded px-2.5 text-xs data-[state=on]:bg-primary data-[state=on]:text-primary-foreground",
           )}
         >
           Sí
@@ -290,7 +290,7 @@ function BooleanField({
         <ToggleGroupItem
           value="no"
           size="sm"
-          className="rounded px-2.5 text-xs data-[state=on]:bg-primary/24 data-[state=on]:text-secondary-foreground"
+          className="cursor-pointer rounded px-2.5 text-xs data-[state=on]:bg-primary/24 data-[state=on]:text-secondary-foreground"
         >
           No
         </ToggleGroupItem>

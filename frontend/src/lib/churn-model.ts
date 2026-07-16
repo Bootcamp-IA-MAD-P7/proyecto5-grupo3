@@ -1,3 +1,4 @@
+// @path: frontend/src/lib/churn-model.ts
 // Cliente-side scoring engine that emulates the trained logistic-regression /
 // gradient-boosting ensemble described in the ChurnPrediction backend.
 // Coefficients are tuned to reflect the well-known drivers of the
@@ -268,4 +269,47 @@ export function getRetentionActions(
     analyst.push("Sin palancas críticas: mantener en cohorte de control.")
 
   return { agent, analyst }
+}
+
+const tf = (v: boolean) => (v ? 'Yes' : 'No')
+
+export function mapFormToBackend(input: CustomerInput): Record<string, unknown> {
+  return {
+    gender: 'Female',
+    senior_citizen: input.seniorCitizen ? 1 : 0,
+    partner: tf(input.hasPartner),
+    dependents: 'No',
+    phone_service: 'Yes',
+    multiple_lines: 'No',
+    internet_service:
+      input.internetService === 'fiber'
+        ? 'Fiber optic'
+        : input.internetService === 'dsl'
+          ? 'DSL'
+          : 'No',
+    online_security: tf(input.onlineSecurity),
+    online_backup: 'No',
+    device_protection: 'No',
+    tech_support: tf(input.techSupport),
+    streaming_tv: tf(input.streamingServices),
+    streaming_movies: tf(input.streamingServices),
+    contract:
+      input.contract === 'month-to-month'
+        ? 'Month-to-month'
+        : input.contract === 'one-year'
+          ? 'One year'
+          : 'Two year',
+    paperless_billing: tf(input.paperlessBilling),
+    payment_method:
+      input.paymentMethod === 'electronic-check'
+        ? 'Electronic check'
+        : input.paymentMethod === 'mailed-check'
+          ? 'Mailed check'
+          : input.paymentMethod === 'bank-transfer'
+            ? 'Bank transfer'
+            : 'Credit card',
+    tenure_months: input.tenure,
+    monthly_charges: input.monthlyCharges,
+    total_charges: input.monthlyCharges * input.tenure,
+  }
 }
