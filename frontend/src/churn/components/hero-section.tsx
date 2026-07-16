@@ -1,5 +1,4 @@
 // @path: frontend/src/churn/components/hero-section.tsx
-import { useEffect, useState } from 'react';
 import {
   ArrowRightIcon,
   BrainCircuitIcon,
@@ -7,14 +6,15 @@ import {
   GaugeIcon,
   ShieldCheckIcon,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
+import { getModelAll } from '@/churn/api/predict.api';
+import type { ModelInfo } from '@/churn/types/predict.interface';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router';
 import type { Role } from '../context/RoleChurnContext';
 import { useRoleChurn } from '../hooks/useRoleChurn';
-import { getModelAll } from '@/churn/api/predict.api';
-import type { ModelInfo } from '@/churn/types/predict.interface';
 
 const ROLE_COPY: Record<
   Role,
@@ -129,7 +129,17 @@ export const HeroSection = () => {
 
       <div className="border-t border-border bg-primary/18 py-18">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <dl className="mt-2 grid grid-cols-1 gap-6 sm:grid-cols-3 lg:gap-8">
+          <dl className="mt-2 grid grid-cols-1 gap-6 sm:grid-cols-4 lg:gap-8">
+            <div className="flex justify-center">
+              <Stat
+                value={
+                  activeModel
+                    ? `${(activeModel.holdout.f1_score * 100).toFixed(1)}%`
+                    : '—'
+                }
+                label="F1-Score"
+              />
+            </div>
             <div className="flex justify-center">
               <Stat
                 value={
@@ -143,9 +153,7 @@ export const HeroSection = () => {
             <div className="flex justify-center">
               <Stat
                 value={
-                  activeModel
-                    ? activeModel.holdout.roc_auc.toFixed(2)
-                    : '—'
+                  activeModel ? activeModel.holdout.roc_auc.toFixed(2) : '—'
                 }
                 label="ROC-AUC"
               />

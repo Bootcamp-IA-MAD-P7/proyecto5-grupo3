@@ -63,7 +63,7 @@ export function MetricsSection() {
               <Card
                 key={model.algorithm}
                 className={
-                  model.is_active ? 'border-primary/40 bg-primary/18' : ''
+                  model.is_active ? 'border-primary/50 bg-primary/25' : ''
                 }
               >
                 <CardHeader>
