@@ -1,8 +1,6 @@
 from datetime import datetime
 from sqlalchemy import Column, String, Float, DateTime, Boolean, Integer
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
+from src.database.connection import Base
 
 class ModelRegistry(Base):
     __tablename__ = "model_registry"
