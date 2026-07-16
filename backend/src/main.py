@@ -41,7 +41,7 @@ async def lifespan(app: FastAPI):
     try:
         print(" [FastAPI Arranque] Ejecutando  selector personalizado ml.selector...")
         # Llama directamente a tu función importada del selector
-        select_best_model(db, primary_metric="roc_auc")
+        select_best_model(db, primary_metric="f1_score")
         print("✅ [FastAPI Arranque] ¡La selección del modelo activo finalizó con éxito!")
     except Exception as e:
         print(f"❌ [FastAPI Arranque] Error al seleccionar el modelo activo: {e}")
@@ -85,7 +85,7 @@ def trigger_model_selection(db: Session = Depends(get_db)):
     metrics and update the active model in the database without restarting.
     """
     # Llama físicamente a la función del script selector
-    selection_result = select_best_model(db, primary_metric="roc_auc")
+    selection_result = select_best_model(db, primary_metric="f1_score")
     
     if not selection_result:
         raise HTTPException(
@@ -141,7 +141,7 @@ def get_all_models(db: Session = Depends(get_db)):
         except Exception as e:
             print(f"❌ Error leyendo métricas en {file_path}: {e}")
 
-    models.sort(key=lambda m: m["holdout"].get("roc_auc", 0), reverse=True)
+    models.sort(key=lambda m: m["holdout"].get("f1_score", 0), reverse=True)
     return models
 
 
